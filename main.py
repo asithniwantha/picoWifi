@@ -2,7 +2,7 @@ import machine
 import time
 import network
 import gc
-from lib.ota_updater import OTAUpdater
+from ota_updater import OTAUpdater
 
 # Configuration (REPLACE THESE WITH YOUR VALUES)
 WIFI_SSID = "linksys"
@@ -31,7 +31,7 @@ def check_for_updates():
     """Checks for and performs OTA update if available."""
     try:
         wlan = connect_wifi()
-        ota_updater = OTAUpdater(REPO_URL)
+        ota_updater = OTAUpdater(REPO_URL, PROJECT_NAME)
 
         if ota_updater.check_for_update_to_install_during_next_reboot():
             print("New version found. Will install on next reboot.")
@@ -47,19 +47,23 @@ def check_for_updates():
     return True # Indicate success
 
 def main():
+    print("Starting main application...")
     """Main application loop (blinking LED)."""
     print("Starting main application...")
     while True:
         led.value(1)
         print("LED ON")
-        time.sleep(0.1)  # Shortened blink delay for demonstration
+        time.sleep(0.01)  # Shortened blink delay for demonstration
         led.value(0)
         print("LED OFF")
-        time.sleep(0.1)
+        time.sleep(0.9)
         gc.collect()  # Important for memory management
 
 if __name__ == "__main__":
+    print("Booting...")
     if check_for_updates(): # Check for updates and reboot if needed
+        print("Update scheduled. Rebooting...")
         pass # If update is scheduled, it will reboot automatically
     else:
+        print("No update scheduled. Starting main application...")
         main() # If no update, start the application
