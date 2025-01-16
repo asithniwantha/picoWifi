@@ -1,22 +1,65 @@
-import blink
 import machine
+import time
+import network
+import gc
 from lib.ota_updater import OTAUpdater
 
-def auto_start():
-    blink.blink_led()
+# Configuration (REPLACE THESE WITH YOUR VALUES)
+WIFI_SSID = "linksys"
+WIFI_PASSWORD = "asith1234567890"
+# REPO_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/{PROJECT_NAME}"
+REPO_URL = "https://github.com/asithniwantha/picoWifi"
 
-machine.Timer(-1).init(period=10, mode=machine.Timer.PERIODIC, callback=lambda t:auto_start())
-print("Auto start enabled")
+# Initialize onboard LED (adjust pin if needed for your board)
+led = machine.Pin("LED", machine.Pin.OUT)
 
-ota_updater = OTAUpdater(github_repo='https://github.com/asithniwantha/picoWifi')
+def connect_wifi():
+    """Connects to Wi-Fi."""
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    if not wlan.isconnected():
+        print('Connecting to WiFi...')
+        wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+        while not wlan.isconnected():
+            time.sleep(1)
+            print(".")
+    print('WiFi connected')
+    print('Network config:', wlan.ifconfig())
+    return wlan
 
-# WiFi credentials
-ssid = 'linksys'
-password = 'asith1234567890'
+def check_for_updates():
+    """Checks for and performs OTA update if available."""
+    try:
+        wlan = connect_wifi()
+        ota_updater = OTAUpdater(REPO_URL)
 
-# Connect to WiFi and install update if available after boot
-if ota_updater.install_update_if_available_after_boot(ssid, password):
-    print("Update installed. Rebooting...")
-    machine.reset()
+        if ota_updater.check_for_update_to_install_during_next_reboot():
+            print("New version found. Will install on next reboot.")
+            machine.reset() # Reset to trigger the update on next boot
+        else:
+            print("No new version available.")
+        wlan.disconnect()
 
+    except Exception as e:
+        print(f"Update check failed: {e}")
+        return False # Indicate failure
 
+    return True # Indicate success
+
+def main():
+    """Main application loop (blinking LED)."""
+    print("Starting main application...")
+    while True:
+        led.value(1)
+        print("LED ON")
+        time.sleep(0.1)  # Shortened blink delay for demonstration
+        led.value(0)
+        print("LED OFF")
+        time.sleep(0.1)
+        gc.collect()  # Important for memory management
+
+if __name__ == "__main__":
+    if check_for_updates(): # Check for updates and reboot if needed
+        pass # If update is scheduled, it will reboot automatically
+    else:
+        main() # If no update, start the application
