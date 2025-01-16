@@ -8,16 +8,11 @@ def auto_start():
 machine.Timer(-1).init(period=100, mode=machine.Timer.PERIODIC, callback=lambda t:auto_start())
 print("Auto start enabled")
 
-def download_and_install_update_if_available():
-    ota_updater = OTAUpdater('url-to-your-github-project')
-    ota_updater.download_and_install_update_if_available('wifi-ssid', 'wifi-password')
+ota_updater = OTAUpdater(github_repo='https://github.com/asithniwantha/picoWifi')
 
-def start():
-    print("Executing main.py")
-
-def boot():
-    download_and_install_update_if_available()
-    start()
-
-
-boot()
+# Connect to WiFi and install update if available after boot
+ssid = 'linksys'
+password = 'asith1234567890'
+if ota_updater.install_update_if_available_after_boot(ssid, password):
+    print("Update installed. Rebooting...")
+    machine.reset()
