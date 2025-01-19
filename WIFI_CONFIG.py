@@ -1,0 +1,2 @@
+SSID='linksys'
+PASSWORD='asith1234567890'
