@@ -10,5 +10,5 @@ ota_updater = OTAUpdater(SSID, PASSWORD, firmware_url, "main.py")
 ota_updater.download_and_install_update_if_available()
 
 while True:
-    time.sleep(1) led()
+    blink.blink_led()
     time.sleep(100) 
